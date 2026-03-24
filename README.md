@@ -22,19 +22,19 @@ npm install
 npm run dev
 ```
 
-Abre http://localhost:3011
+Abre http://localhost:3020
 
-## Deploy en producción (proxy Nginx, puerto 8082)
+## Deploy en producción (proxy Nginx, puerto 8090)
 
-Configuración alineada con union-lp: Nginx escucha en 8082 y hace proxy a la app en 3011.
+Nginx escucha en 8090 y hace proxy a la app en 3020.
 
 ### 1. Build y arranque en el VPS
 
 ```bash
-cd /ruta/danger-ak
+cd /ruta/dangerak
 npm ci
 npm run build
-npm run start   # Sirve dist en puerto 3011
+npm run start   # Sirve dist en puerto 3020
 ```
 
 ### 2. Mantener el proceso activo (PM2)
@@ -47,7 +47,7 @@ pm2 startup
 
 ### 3. Nginx
 
-Sitio en `sites-available/danger-ak`: escucha puerto 8082, proxy a `http://127.0.0.1:3011`. Acceso: `http://TU_IP:8082`
+Sitio en `sites-available/danger-ak`: escucha puerto 8090, proxy a `http://127.0.0.1:3020`. Acceso: `http://TU_IP:8090`
 
 ### 4. Alternativa: Nginx sirve archivos estáticos
 
