@@ -22,56 +22,43 @@ npm install
 npm run dev
 ```
 
-Abre http://localhost:5173
+Abre http://localhost:3011
 
-## Deploy (sitio estático)
+## Deploy en producción (proxy Nginx, puerto 8082)
 
-### 1. Build
+Configuración alineada con union-lp: Nginx escucha en 8082 y hace proxy a la app en 3011.
+
+### 1. Build y arranque en el VPS
+
+```bash
+cd /ruta/danger-ak
+npm ci
+npm run build
+npm run start   # Sirve dist en puerto 3011
+```
+
+### 2. Mantener el proceso activo (PM2)
+
+```bash
+pm2 start npm --name "danger-ak" -- run start
+pm2 save
+pm2 startup
+```
+
+### 3. Nginx
+
+Sitio en `sites-available/danger-ak`: escucha puerto 8082, proxy a `http://127.0.0.1:3011`. Acceso: `http://TU_IP:8082`
+
+### 4. Alternativa: Nginx sirve archivos estáticos
+
+Si prefieres no usar Node en producción:
 
 ```bash
 npm run build
+# Copiar dist/ al VPS, ej: rsync -avz dist/ usuario@vps:/var/www/danger-ak/dist/
 ```
 
-Los archivos están en `dist/`.
-
-### 2. Servir con Nginx
-
-Crear sitio en `/etc/nginx/sites-available/dangerak`:
-
-```nginx
-server {
-    listen 80;
-    server_name tudominio.com www.tudominio.com;
-    root /var/www/dangerak/dist;
-    index index.html;
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
-```bash
-sudo ln -s /etc/nginx/sites-available/dangerak /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 3. Subir archivos al VPS
-
-```bash
-rsync -avz dist/ usuario@tu-vps:/var/www/dangerak/dist/
-# O: scp -r dist/* usuario@tu-vps:/var/www/dangerak/dist/
-```
-
-### 4. SSL (Let's Encrypt)
-
-```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d tudominio.com
-```
+En Nginx, usar `root /var/www/danger-ak/dist` y `try_files $uri $uri/ /index.html` en lugar de `proxy_pass`.
 
 ---
 
